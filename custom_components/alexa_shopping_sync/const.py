@@ -25,6 +25,9 @@ CONF_DEBUG_MODE: Final = "debug_mode"
 CONF_SHOPPING_LIST_ID_OVERRIDE: Final = "shopping_list_id_override"
 CONF_TARGET_LIST: Final = "target_list"
 TARGET_SHOPPING_LIST: Final = "shopping_list"
+CONF_ALEXA_LIST: Final = "alexa_list"
+ALEXA_LIST_SHOPPING: Final = "shopping"
+ALEXA_LIST_TODO: Final = "todo"
 
 # Defaults
 DEFAULT_AMAZON_DOMAIN: Final = "amazon.de"
@@ -43,6 +46,17 @@ AMAZON_API_GET_LIST_ITEMS: Final = "/getlistitems"
 AMAZON_API_ADD_LIST_ITEM: Final = "/addlistitem/{list_id}"
 AMAZON_API_UPDATE_LIST_ITEM: Final = "/updatelistitem"
 AMAZON_API_DELETE_LIST_ITEM: Final = "/deletelistitem"
+
+# v2 list endpoints, used for the to-do list (verified against live API 2026-11)
+AMAZON_API_V2_LISTS_FETCH: Final = "/v2/lists/fetch"
+AMAZON_API_V2_ITEMS_FETCH: Final = "/v2/lists/{list_id}/items/fetch?limit={limit}"
+AMAZON_API_V2_ITEMS: Final = "/v2/lists/{list_id}/items"
+AMAZON_API_V2_ITEM: Final = "/v2/lists/{list_id}/items/{item_id}?version={version}"
+AMAZON_V2_PAGE_SIZE: Final = 100
+AMAZON_V2_MAX_PAGES: Final = 50
+AMAZON_V2_TODO_LIST_TYPE: Final = "TODO"
+AMAZON_V2_STATUS_ACTIVE: Final = "ACTIVE"
+AMAZON_V2_STATUS_COMPLETE: Final = "COMPLETE"
 
 # PitanguiBridge User-Agent (mimics Alexa mobile app - required for API access)
 AMAZON_USER_AGENT: Final = (
@@ -103,6 +117,24 @@ CAPTCHA_INDICATORS: Final = (
     "auth-captcha",
     "opfcaptcha",
 )
+
+
+def storage_key_for(alexa_list: str, entry_id: str) -> str:
+    """Return the sync state storage key for a config entry.
+
+    Shopping entries keep the original shared key so existing installs retain
+    their mappings without a migration.
+    """
+    if alexa_list == ALEXA_LIST_SHOPPING:
+        return STORAGE_KEY
+    return f"{STORAGE_KEY}.{entry_id}"
+
+
+def unique_id_for(email: str, amazon_domain: str, alexa_list: str) -> str:
+    """Return the config entry unique ID; shopping entries keep the original format."""
+    if alexa_list == ALEXA_LIST_SHOPPING:
+        return f"{email}_{amazon_domain}"
+    return f"{email}_{amazon_domain}_{alexa_list}"
 
 
 class SyncMode(StrEnum):

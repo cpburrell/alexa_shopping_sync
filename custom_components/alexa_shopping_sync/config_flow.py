@@ -45,6 +45,9 @@ from .auth import (
     normalize_otp_secret,
 )
 from .const import (
+    ALEXA_LIST_SHOPPING,
+    ALEXA_LIST_TODO,
+    CONF_ALEXA_LIST,
     CONF_AMAZON_DOMAIN,
     CONF_DEBUG_MODE,
     CONF_EMAIL,
@@ -69,6 +72,7 @@ from .const import (
     TARGET_SHOPPING_LIST,
     InitialSyncMode,
     SyncMode,
+    unique_id_for,
 )
 from .exceptions import (
     OTPSecretInvalidError,
@@ -201,7 +205,10 @@ class AlexaShoppingConfigFlow(ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             domain = user_input.get(CONF_AMAZON_DOMAIN, DEFAULT_AMAZON_DOMAIN)
-            await self.async_set_unique_id(f"{user_input[CONF_EMAIL]}_{domain}")
+            alexa_list = user_input.get(CONF_ALEXA_LIST, ALEXA_LIST_SHOPPING)
+            await self.async_set_unique_id(
+                unique_id_for(user_input[CONF_EMAIL], domain, alexa_list)
+            )
             self._abort_if_unique_id_configured()
 
             ha_url = user_input.get(CONF_HA_URL, "")
@@ -234,6 +241,9 @@ class AlexaShoppingConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
+                    vol.Required(CONF_ALEXA_LIST, default=ALEXA_LIST_SHOPPING): vol.In(
+                        {ALEXA_LIST_SHOPPING: "Shopping List", ALEXA_LIST_TODO: "To-Do List"}
+                    ),
                     vol.Required(CONF_AMAZON_DOMAIN, default=DEFAULT_AMAZON_DOMAIN): str,
                     vol.Required(CONF_EMAIL): str,
                     vol.Required(CONF_PASSWORD): str,
@@ -655,9 +665,12 @@ class AlexaShoppingConfigFlow(ConfigFlow, domain=DOMAIN):
     def _create_entry_from_flow(self) -> ConfigFlowResult:
         """Build the config entry from accumulated user input."""
         full_config = self._user_input
+        alexa_list = full_config.get(CONF_ALEXA_LIST, ALEXA_LIST_SHOPPING)
+        label = "Alexa To-Do" if alexa_list == ALEXA_LIST_TODO else "Alexa"
         return self.async_create_entry(
-            title=f"Alexa ({full_config.get(CONF_EMAIL, 'unknown')})",
+            title=f"{label} ({full_config.get(CONF_EMAIL, 'unknown')})",
             data={
+                CONF_ALEXA_LIST: alexa_list,
                 CONF_AMAZON_DOMAIN: full_config.get(CONF_AMAZON_DOMAIN, DEFAULT_AMAZON_DOMAIN),
                 CONF_EMAIL: full_config[CONF_EMAIL],
                 CONF_PASSWORD: full_config[CONF_PASSWORD],

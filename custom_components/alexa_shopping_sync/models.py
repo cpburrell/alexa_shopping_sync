@@ -85,6 +85,25 @@ class AlexaShoppingItem:
             version=data.get("version"),
         )
 
+    @classmethod
+    def from_v2_response(cls, data: dict[str, Any]) -> AlexaShoppingItem:
+        """Create from a v2 API item (itemId, itemName, itemStatus, createAt, updateAt)."""
+
+        def _timestamp(key: str) -> datetime | None:
+            try:
+                return datetime.fromtimestamp(data[key] / 1000)
+            except (KeyError, ValueError, TypeError, OSError):
+                return None
+
+        return cls(
+            item_id=data.get("itemId", ""),
+            name=data.get("itemName", ""),
+            complete=data.get("itemStatus") == "COMPLETE",
+            created_at=_timestamp("createAt"),
+            updated_at=_timestamp("updateAt"),
+            version=data.get("version"),
+        )
+
 
 @dataclass
 class HAShoppingItem:

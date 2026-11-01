@@ -20,8 +20,12 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .amazon_client import AmazonShoppingClient
+from .amazon_todo_client import AmazonTodoClient
 from .auth import AuthManager
 from .const import (
+    ALEXA_LIST_SHOPPING,
+    ALEXA_LIST_TODO,
+    CONF_ALEXA_LIST,
     CONF_AMAZON_DOMAIN,
     CONF_DEBUG_MODE,
     CONF_EMAIL,
@@ -42,6 +46,7 @@ from .const import (
     TARGET_SHOPPING_LIST,
     InitialSyncMode,
     SyncMode,
+    storage_key_for,
 )
 from .exceptions import SessionExpiredError, ThrottledError
 from .ha_list_bridge import HAListBridge, compute_snapshot_hash
@@ -171,7 +176,9 @@ class AlexaShoppingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
 
         # Amazon client
-        self._amazon_client = AmazonShoppingClient(self._auth_manager)
+        alexa_list = data.get(CONF_ALEXA_LIST, ALEXA_LIST_SHOPPING)
+        client_class = AmazonTodoClient if alexa_list == ALEXA_LIST_TODO else AmazonShoppingClient
+        self._amazon_client = client_class(self._auth_manager)
 
         # HA bridge — shopping list or todo entity
         if self._target_list == TARGET_SHOPPING_LIST:
@@ -193,6 +200,7 @@ class AlexaShoppingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             initial_sync_mode=initial_sync_mode,
             preserve_duplicates=options.get(CONF_PRESERVE_DUPLICATES, DEFAULT_PRESERVE_DUPLICATES),
             mirror_completed=options.get(CONF_MIRROR_COMPLETED, DEFAULT_MIRROR_COMPLETED),
+            storage_key=storage_key_for(alexa_list, self._entry.entry_id),
         )
 
         # Load persisted state
@@ -656,7 +664,7 @@ class AlexaShoppingCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Register integration services."""
         from .services import async_register_services
 
-        await async_register_services(self.hass, self)
+        await async_register_services(self.hass)
 
     async def async_force_refresh(self) -> None:
         """Force an immediate refresh cycle, even when sync is paused."""

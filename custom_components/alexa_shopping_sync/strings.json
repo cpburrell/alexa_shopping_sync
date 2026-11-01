@@ -5,6 +5,7 @@
         "title": "Amazon Account",
         "description": "Configure your Amazon account for Alexa Shopping List sync.\n\n**Important:** Only accounts with 2-Step Verification via Authenticator App are supported. No Passkeys, no SMS OTP.",
         "data": {
+          "alexa_list": "Alexa list to sync",
           "amazon_domain": "Amazon Domain",
           "email": "Email Address",
           "password": "Password",

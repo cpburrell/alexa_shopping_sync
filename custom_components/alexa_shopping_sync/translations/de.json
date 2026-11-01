@@ -5,6 +5,7 @@
         "title": "Amazon-Konto",
         "description": "Konfiguriere dein Amazon-Konto für die Alexa-Einkaufslisten-Synchronisation.\n\n**Wichtig:** Nur Konten mit 2-Schritt-Verifizierung über eine Authenticator-App werden unterstützt. Keine Passkeys, kein SMS-OTP.",
         "data": {
+          "alexa_list": "Zu synchronisierende Alexa-Liste",
           "amazon_domain": "Amazon-Domain",
           "email": "E-Mail-Adresse",
           "password": "Passwort",

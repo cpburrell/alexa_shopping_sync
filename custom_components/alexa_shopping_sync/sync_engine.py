@@ -80,6 +80,7 @@ class SyncEngine:
         initial_sync_mode: InitialSyncMode,
         preserve_duplicates: bool = True,
         mirror_completed: bool = True,
+        storage_key: str = STORAGE_KEY,
     ) -> None:
         """Initialize sync engine."""
         self._hass = hass
@@ -90,7 +91,7 @@ class SyncEngine:
         self._preserve_duplicates = preserve_duplicates
         self._mirror_completed = mirror_completed
 
-        self._store = Store[dict[str, Any]](hass, STORAGE_VERSION, STORAGE_KEY)
+        self._store = Store[dict[str, Any]](hass, STORAGE_VERSION, storage_key)
         self._state = SyncState()
         self._previous_alexa_items: list[AlexaShoppingItem] = []
         self._previous_ha_items: list[HAShoppingItem] = []

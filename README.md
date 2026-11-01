@@ -4,6 +4,15 @@
 
 A Home Assistant HACS custom integration for bidirectional synchronization between the **Amazon Alexa shopping list** and a **Home Assistant list** — either the built-in Shopping List or any to-do list entity (e.g. Cookidoo, Google Tasks, Local To-do).
 
+## To-Do List support (fork)
+
+This fork can also sync the Alexa **To-Do List**, using Amazon's v2 list API. Add the
+integration a second time and choose **To-Do List** as the Alexa list. Each list is its own
+config entry with its own target, login and mapping storage; existing Shopping List entries
+are unaffected. Only the title and completed state are synced.
+
+Services apply to every entry unless `config_entry_id` is given.
+
 ## Support Matrix
 
 | Feature | Supported |
