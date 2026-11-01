@@ -765,6 +765,12 @@ class SyncEngine:
                         mapped_ha_ids.add(ha_match.item_id)
                 continue
 
+            # Already linked: this is our own HA->Alexa add, seen after the echo
+            # grace window expired. Adding it again would duplicate it in HA.
+            if self._find_mapping_by_alexa_id(item.item_id):
+                result.skipped_echo += 1
+                continue
+
             if not self._mirror_completed and item.complete:
                 continue
 
@@ -953,6 +959,12 @@ class SyncEngine:
         mapped_alexa_ids = {m.alexa_id for m in self._state.mappings}
         for item in diff.added:
             if self._is_echo(PendingOpType.ADD, item.name, item.item_id):
+                result.skipped_echo += 1
+                continue
+
+            # Already linked: this is our own Alexa->HA add, seen after the echo
+            # grace window expired. Adding it again would duplicate it on Alexa.
+            if self._find_mapping_by_ha_id(item.item_id):
                 result.skipped_echo += 1
                 continue
 

@@ -712,3 +712,37 @@ class TestMoveAlexaToHa:
         assert result.move_deletes == 1
         mock_ha_bridge.async_add_item.assert_called_once_with("Milk", True)
         mock_amazon_client.async_delete_item.assert_called_once_with("a1")
+
+
+class TestLateEchoDoesNotDuplicate:
+    """Own writes seen after the echo grace window must not be written back."""
+
+    @pytest.mark.asyncio
+    async def test_ha_add_seen_late_on_alexa(self, sync_engine, mock_ha_bridge):
+        """A mapped Alexa item appearing in a later poll is not re-added to HA."""
+        sync_engine._initial_sync_done = True
+        sync_engine._previous_alexa_items = [make_alexa_item("old", "Old")]
+        sync_engine._add_mapping("a1", "h1", "Milk", ItemSource.HA)
+
+        result = await sync_engine.async_sync_alexa_to_ha(
+            [make_alexa_item("old", "Old"), make_alexa_item("a1", "Milk")]
+        )
+
+        mock_ha_bridge.async_add_item.assert_not_called()
+        assert result.alexa_to_ha_adds == 0
+        assert len(sync_engine.state.mappings) == 1
+
+    @pytest.mark.asyncio
+    async def test_alexa_add_seen_late_on_ha(self, sync_engine, mock_amazon_client):
+        """A mapped HA item appearing in a later update is not re-added to Alexa."""
+        sync_engine._initial_sync_done = True
+        sync_engine._previous_ha_items = [make_ha_item("old", "Old")]
+        sync_engine._add_mapping("a1", "h1", "Milk", ItemSource.ALEXA)
+
+        result = await sync_engine.async_sync_ha_to_alexa(
+            [make_ha_item("old", "Old"), make_ha_item("h1", "Milk")]
+        )
+
+        mock_amazon_client.async_add_item.assert_not_called()
+        assert result.ha_to_alexa_adds == 0
+        assert len(sync_engine.state.mappings) == 1
